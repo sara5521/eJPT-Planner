@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive eJPT v2 Study Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+        }
+
+        .progress-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .progress-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .progress-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .progress-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4facfe;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .progress-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .domains-overview {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .domain-progress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .domain-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .domain-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .domain-bar {
+            background: #e9ecef;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .domain-fill {
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .study-planner {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .planner-header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .day-container {
+            padding: 30px;
+            display: grid;
+            gap: 25px;
+        }
+
+        .day-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #4facfe;
+            transition: all 0.3s ease;
+        }
+
+        .day-card.completed {
+            border-left-color: #27ae60;
+            background: #e8f5e8;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .day-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .day-status {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 3px solid #4facfe;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-status:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .day-status.completed {
+            background: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .day-status.completed::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .labs-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lab-input-container {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .lab-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lab-input input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .lab-input input[type="text"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+        }
+
+        .lab-input input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4facfe;
+            cursor: pointer;
+        }
+
+        .remove-lab {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background 0.3s ease;
+        }
+
+        .remove-lab:hover {
+            background: #ff3742;
+        }
+
+        .add-lab-btn {
+            background: #4facfe;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        .add-lab-btn:hover {
+            background: #2f80ed;
+            transform: translateY(-2px);
+        }
+
+        .theory-section {
+            background: linear-gradient(90deg, #e3f2fd, #f3e5f5);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #9c27b0;
+            margin-bottom: 15px;
+        }
+
+        .theory-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .theory-input:focus {
+            outline: none;
+            border-color: #9c27b0;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.2);
+        }
+
+        .notes-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .notes-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #ffc107;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
+        }
+
+        .save-progress {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .save-progress:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(39, 174, 96, 0.4);
+        }
+
+        .export-import {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .export-btn, .import-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn:hover, .import-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .floating-help {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 320px;
+            z-index: 1000;
+        }
+
+        .help-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-content {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .domain-breakdown {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .breakdown-title {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .breakdown-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+            transition: transform 0.3s ease;
+        }
+
+        .breakdown-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .breakdown-card h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breakdown-details {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .breakdown-percentage {
+            background: #4facfe;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .min-score-badge {
+            background: #ff4757;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #ff4757;
+        }
+
+        .lab-suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .lab-suggestions div {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9em;
+            transition: background 0.2s ease;
+        }
+
+        .lab-suggestions div:hover {
+            background: #f8f9fa;
+        }
+
+        .study-stats {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: #4facfe;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .reset-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #ff3742;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .floating-help { position: static; margin-bottom: 20px; max-width: none; }
+            .save-progress, .export-import { position: static; margin: 20px auto; }
+            .progress-dashboard { grid-template-columns: 1fr 1fr; }
+            .day-header { flex-direction: column; gap: 15px; text-align: center; }
+            .breakdown-grid { grid-template-columns: 1fr; }
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background: #34495e;
+            transform: rotate(180deg);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .progress-card,
+        body.dark-mode .domains-overview,
+        body.dark-mode .study-planner,
+        body.dark-mode .domain-breakdown,
+        body.dark-mode .study-stats,
+        body.dark-mode .floating-help {
+            background: #34495e;
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .domain-card,
+        body.dark-mode .day-card,
+        body.dark-mode .breakdown-card,
+        body.dark-mode .stat-item {
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        body.dark-mode .theory-section {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+        }
+
+        body.dark-mode .notes-section {
+            background: #f39c12;
+            color: #2c3e50;
+        }
+
+        .search-filter {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .search-filter input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
+
+    <div class="floating-help">
+        <div class="help-title">📋 Usage Guide</div>
+        <div class="help-content">
+            • Enter lab names for each day (3 labs recommended)<br>
+            • Add theoretical notes for concepts<br>
+            • ✓ Mark days as completed<br>
+            • Auto-save progress<br>
+            • Export/Import data for backup<br>
+            • Use search to find specific days/topics
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1>🎯 Interactive eJPT v2 Study Planner</h1>
+            <p style="font-size: 1.1em; margin-top: 10px;">Personalized & Customizable Study Plan</p>
+        </header>
+
+        <!-- Overall Progress Dashboard -->
+        <div class="progress-dashboard">
+            <div class="progress-card">
+                <span class="progress-number" id="total-days">0</span>
+                <span class="progress-label">Days Completed</span>
+            </div>
+            <div class="progress-card">
+                <span class="progress-number" id="total-labs">0</span>
+                <span class="progress-label">Labs Completed</span>
+            </div>
+            <div class="progress-card">
+                <span class="progress-number" id="completion-percentage">0%</span>
+                <span class="progress-label">Completion Rate</span>
+            </div>
+            <div class="progress-card">
+                <span class="progress-number" id="estimated-days">49</span>
+                <span class="progress-label">Days Remaining</span>
+            </div>
+        </div>
+
+        <!-- Study Statistics -->
+        <div class="study-stats">
+            <h3 style="text-align: center; margin-bottom: 10px; color: #2c3e50;">📊 Study Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="avg-labs-per-day">0</div>
+                    <div class="stat-label">Avg Labs/Day</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="study-streak">0</div>
+                    <div class="stat-label">Current Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-notes">0</div>
+                    <div class="stat-label">Notes Written</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completion-rate">0%</div>
+                    <div class="stat-label">Weekly Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Details -->
+        <div class="domain-breakdown">
+            <h3 class="breakdown-title">📊 eJPT v2 Exam Domains</h3>
+            <div class="breakdown-grid">
+                <div class="breakdown-card">
+                    <div class="breakdown-percentage">25%</div>
+                    <span class="min-score-badge">90% min</span>
+                    <h4>🔍 Assessment Methodologies</h4>
+                    <div class="breakdown-details">
+                        <strong>Key Focus Areas:</strong><br>
+                        • Information gathering and vulnerability assessment<br>
+                        • Port and service identification<br>
+                        • Information Gathering techniques<br>
+                        • Vulnerability Assessment processes<br>
+                        <br>
+                        <strong>Important Tools:</strong><br>
+                        Nmap, Shodan, Google Dorking, Recon-ng
+                    </div>
+                </div>
+
+                <div class="breakdown-card">
+                    <div class="breakdown-percentage">25%</div>
+                    <span class="min-score-badge">80% min</span>
+                    <h4>🖥️ Host & Network Auditing</h4>
+                    <div class="breakdown-details">
+                        <strong>Key Focus Areas:</strong><br>
+                        • Hash/Password information gathering<br>
+                        • Network information enumeration from files<br>
+                        • Network Enumeration techniques<br>
+                        • Service Discovery methods<br>
+                        <br>
+                        <strong>Important Tools:</strong><br>
+                        SMBclient, Enum4linux, Rpcclient, NBTscan
+                    </div>
+                </div>
+
+                <div class="breakdown-card">
+                    <div class="breakdown-percentage">35%</div>
+                    <span class="min-score-badge">70% min</span>
+                    <h4>💥 Host & Network Pen Testing</h4>
+                    <div class="breakdown-details">
+                        <strong>Key Focus Areas:</strong><br>
+                        • Password brute-force attacks<br>
+                        • Exploitation using Metasploit<br>
+                        • Network-based attacks<br>
+                        • Post-exploitation techniques<br>
+                        <br>
+                        <strong>Important Tools:</strong><br>
+                        Metasploit, Hydra, John the Ripper, Hashcat
+                    </div>
+                </div>
+
+                <div class="breakdown-card">
+                    <div class="breakdown-percentage">15%</div>
+                    <span class="min-score-badge">60% min</span>
+                    <h4>🌐 Web Application Pen Testing</h4>
+                    <div class="breakdown-details">
+                        <strong>Key Focus Areas:</strong><br>
+                        • Web application vulnerability exploitation<br>
+                        • Hidden file and directory discovery<br>
+                        • Directory Discovery techniques<br>
+                        • Basic web vulnerabilities<br>
+                        <br>
+                        <strong>Important Tools:</strong><br>
+                        Gobuster, Dirb, Nikto, Burp Suite, OWASP ZAP
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Domain Progress -->
+        <div class="domains-overview">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #2c3e50;">📈 Your Progress by Domain</h3>
+            <div class="domain-progress">
+                <div class="domain-card">
+                    <div class="domain-title">Assessment Methodologies (25%)</div>
+                    <div class="domain-bar">
+                        <div class="domain-fill" id="domain-1-progress" style="width: 0%"></div>
+                    </div>
+                    <span id="domain-1-text">0 of 12 days</span>
+                </div>
+                <div class="domain-card">
+                    <div class="domain-title">Host & Network Auditing (25%)</div>
+                    <div class="domain-bar">
+                        <div class="domain-fill" id="domain-2-progress" style="width: 0%"></div>
+                    </div>
+                    <span id="domain-2-text">0 of 12 days</span>
+                </div>
+                <div class="domain-card">
+                    <div class="domain-title">Host & Network Pen Testing (35%)</div>
+                    <div class="domain-bar">
+                        <div class="domain-fill" id="domain-3-progress" style="width: 0%"></div>
+                    </div>
+                    <span id="domain-3-text">0 of 17 days</span>
+                </div>
+                <div class="domain-card">
+                    <div class="domain-title">Web Application Pen Testing (15%)</div>
+                    <div class="domain-bar">
+                        <div class="domain-fill" id="domain-4-progress" style="width: 0%"></div>
+                    </div>
+                    <span id="domain-4-text">0 of 8 days</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-filter">
+            <input type="text" id="search-input" placeholder="Search days, labs, or notes..." onkeyup="filterDays()">
+            <select class="filter-select" id="domain-filter" onchange="filterDays()">
+                <option value="">All Domains</option>
+                <option value="Assessment Methodologies">Assessment Methodologies</option>
+                <option value="Host & Network Auditing">Host & Network Auditing</option>
+                <option value="Host & Network Pen Testing">Host & Network Pen Testing</option>
+                <option value="Web Application Pen Testing">Web Application Pen Testing</option>
+            </select>
+            <select class="filter-select" id="status-filter" onchange="filterDays()">
+                <option value="">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+            </select>
+            <button class="reset-btn" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <!-- Study Planner -->
+        <div class="study-planner">
+            <div class="planner-header">
+                <h2>📅 Daily Study Planner</h2>
+                <p>3 labs + theoretical review daily</p>
+            </div>
+            <div class="day-container" id="study-days">
+                <!-- Days will be generated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="export-import">
+        <button class="export-btn" onclick="exportData()">📤 Export</button>
+        <button class="import-btn" onclick="document.getElementById('import-file').click()">📥 Import</button>
+        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importData(event)">
+    </div>
+    
+    <button class="save-progress" onclick="saveProgress()">💾 Save Progress</button>
+
+    <!-- Notification Area -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Study plan data
+        const studyPlan = {
+            domains: [
+                {
+                    name: "Assessment Methodologies",
+                    days: 12,
+                    startDay: 1,
+                    topics: [
+                        "Information Gathering",
+                        "Footprinting & Scanning", 
+                        "Enumeration",
+                        "Vulnerability Assessment"
+                    ]
+                },
+                {
+                    name: "Host & Network Auditing", 
+                    days: 12,
+                    startDay: 13,
+                    topics: [
+                        "Network Discovery",
+                        "Service Enumeration",
+                        "SMB/NetBIOS Analysis",
+                        "File System Analysis"
+                    ]
+                },
+                {
+                    name: "Host & Network Pen Testing",
+                    days: 17, 
+                    startDay: 25,
+                    topics: [
+                        "Metasploit Framework",
+                        "Exploitation Techniques", 
+                        "Brute-force Attacks",
+                        "Post-Exploitation"
+                    ]
+                },
+                {
+                    name: "Web Application Pen Testing",
+                    days: 8,
+                    startDay: 42,
+                    topics: [
+                        "Web Reconnaissance",
+                        "Directory Discovery",
+                        "Web Vulnerabilities",
+                        "Web Exploitation"
+                    ]
+                }
+            ]
+        };
+
+        let studyData = {
+            days: {},
+            startDate: new Date().toISOString().split('T')[0],
+            darkMode: false
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProgress();
+            createStudyDays();
+            updateProgress();
+            updateStatistics();
+            loadDarkMode();
+        });
+
+        // Create study days
+        function createStudyDays() {
+            const container = document.getElementById('study-days');
+            container.innerHTML = '';
+
+            for (let day = 1; day <= 49; day++) {
+                const domainInfo = getDomainForDay(day);
+                const dayCard = createDayCard(day, domainInfo);
+                container.appendChild(dayCard);
+            }
+        }
+
+        // Determine domain for each day
+        function getDomainForDay(day) {
+            for (const domain of studyPlan.domains) {
+                if (day >= domain.startDay && day < domain.startDay + domain.days) {
+                    return domain;
+                }
+            }
+            return studyPlan.domains[studyPlan.domains.length - 1];
+        }
+
+        // Create day card
+        function createDayCard(dayNumber, domainInfo) {
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            dayCard.id = `day-${dayNumber}`;
+            dayCard.setAttribute('data-domain', domainInfo.name);
+            
+            const dayData = studyData.days[dayNumber] || {
+                completed: false,
+                labs: ['', '', ''],
+                theory: '',
+                notes: ''
+            };
+
+            if (dayData.completed) {
+                dayCard.classList.add('completed');
+            }
+
+            dayCard.innerHTML = `
+                <div class="day-header">
+                    <div class="day-title">
+                        📅 Day ${dayNumber} - ${domainInfo.name}
+                    </div>
+                    <div class="day-status ${dayData.completed ? 'completed' : ''}" 
+                         onclick="toggleDayComplete(${dayNumber})" 
+                         title="Click to mark as ${dayData.completed ? 'incomplete' : 'complete'}"></div>
+                </div>
+
+                <div class="labs-section">
+                    <div class="section-title">🧪 Labs (3 recommended)</div>
+                    <div class="lab-input-container">
+                        ${dayData.labs.map((lab, index) => `
+                            <div class="lab-input">
+                                <input type="checkbox" ${lab ? 'checked' : ''} 
+                                       onchange="updateLabStatus(${dayNumber}, ${index}, this.checked)"
+                                       title="Mark lab as completed">
+                                <input type="text" placeholder="Lab ${index + 1} name"
+                                       value="${lab}" 
+                                       onchange="updateLab(${dayNumber}, ${index}, this.value)"
+                                       onfocus="showLabSuggestions(this, ${dayNumber}, '${domainInfo.name}')">
+                                ${dayData.labs.length > 3 ? `<button class="remove-lab" onclick="removeLab(${dayNumber}, ${index})">Remove</button>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="add-lab-btn" onclick="addLab(${dayNumber})">➕ Add Lab</button>
+                </div>
+
+                <div class="theory-section">
+                    <div class="section-title">📚 Theoretical Review - ${domainInfo.name}</div>
+                    <textarea class="theory-input" 
+                              placeholder="Write important theoretical concepts, commands, and techniques studied today..."
+                              onchange="updateTheory(${dayNumber}, this.value)"
+                              oninput="autoSave()">${dayData.theory}</textarea>
+                </div>
+
+                <div class="notes-section">
+                    <div class="section-title">📝 Additional Notes</div>
+                    <textarea class="notes-input" 
+                              placeholder="Notes, challenges faced, tips learned..."
+                              onchange="updateNotes(${dayNumber}, this.value)"
+                              oninput="autoSave()">${dayData.notes}</textarea>
+                </div>
+            `;
+
+            return dayCard;
+        }
+
+        // Toggle day completion
+        function toggleDayComplete(dayNumber) {
+            if (!studyData.days[dayNumber]) {
+                studyData.days[dayNumber] = {
+                    completed: false,
+                    labs: ['', '', ''],
+                    theory: '',
+                    notes: ''
+                };
+            }
+
+            studyData.days[dayNumber].completed = !studyData.days[dayNumber].completed;
+            
+            const dayCard = document.getElementById(`day-${dayNumber}`);
+            const statusElement = dayCard.querySelector('.day-status');
+            
+            if (studyData.days[dayNumber].completed) {
+                dayCard.classList.add('completed');
+                statusElement.classList.add('completed');
+                statusElement.title = 'Click to mark as incomplete';
+                showNotification('Day completed successfully! 🎉', 'success');
+            } else {
+                dayCard.classList.remove('completed');
+                statusElement.classList.remove('completed');
+                statusElement.title = 'Click to mark as complete';
+            }
+
+            updateProgress();
+            updateStatistics();
+            autoSave();
+        }
+
+        // Update lab
+        function updateLab(dayNumber, labIndex, value) {
+            if (!studyData.days[dayNumber]) {
+                studyData.days[dayNumber] = {
+                    completed: false,
+                    labs: ['', '', ''],
+                    theory: '',
+                    notes: ''
+                };
+            }
+
+            studyData.days[dayNumber].labs[labIndex] = value;
+            updateProgress();
+            updateStatistics();
+            autoSave();
+        }
+
+        // Update lab status
+        function updateLabStatus(dayNumber, labIndex, checked) {
+            updateProgress();
+            updateStatistics();
+            autoSave();
+        }
+
+        // Update theory
+        function updateTheory(dayNumber, value) {
+            if (!studyData.days[dayNumber]) {
+                studyData.days[dayNumber] = {
+                    completed: false,
+                    labs: ['', '', ''],
+                    theory: '',
+                    notes: ''
+                };
+            }
+
+            studyData.days[dayNumber].theory = value;
+            updateStatistics();
+            autoSave();
+        }
+
+        // Update notes
+        function updateNotes(dayNumber, value) {
+            if (!studyData.days[dayNumber]) {
+                studyData.days[dayNumber] = {
+                    completed: false,
+                    labs: ['', '', ''],
+                    theory: '',
+                    notes: ''
+                };
+            }
+
+            studyData.days[dayNumber].notes = value;
+            updateStatistics();
+            autoSave();
+        }
+
+        // Add new lab
+        function addLab(dayNumber) {
+            if (!studyData.days[dayNumber]) {
+                studyData.days[dayNumber] = {
+                    completed: false,
+                    labs: ['', '', ''],
+                    theory: '',
+                    notes: ''
+                };
+            }
+
+            studyData.days[dayNumber].labs.push('');
+            
+            // Recreate the card
+            const domainInfo = getDomainForDay(dayNumber);
+            const dayCard = document.getElementById(`day-${dayNumber}`);
+            const newCard = createDayCard(dayNumber, domainInfo);
+            dayCard.parentNode.replaceChild(newCard, dayCard);
+            
+            autoSave();
+        }
+
+        // Remove lab
+        function removeLab(dayNumber, labIndex) {
+            if (studyData.days[dayNumber] && studyData.days[dayNumber].labs.length > 3) {
+                studyData.days[dayNumber].labs.splice(labIndex, 1);
+                
+                const domainInfo = getDomainForDay(dayNumber);
+                const dayCard = document.getElementById(`day-${dayNumber}`);
+                const newCard = createDayCard(dayNumber, domainInfo);
+                dayCard.parentNode.replaceChild(newCard, dayCard);
+                
+                updateProgress();
+                updateStatistics();
+                autoSave();
+            }
+        }
+
+        // Show lab suggestions
+        function showLabSuggestions(inputElement, dayNumber, domainName) {
+            const suggestions = getLabSuggestions(domainName);
+            
+            // Remove existing list
+            const existingList = document.querySelector('.lab-suggestions');
+            if (existingList) {
+                existingList.remove();
+            }
+
+            // Create suggestions list
+            const suggestionsList = document.createElement('div');
+            suggestionsList.className = 'lab-suggestions';
+            suggestionsList.style.cssText = `
+                width: ${inputElement.offsetWidth}px;
+                top: ${inputElement.offsetTop + inputElement.offsetHeight + 5}px;
+                left: ${inputElement.offsetLeft}px;
+            `;
+
+            suggestions.forEach(suggestion => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.textContent = suggestion;
+                
+                suggestionItem.addEventListener('click', function() {
+                    inputElement.value = suggestion;
+                    inputElement.onchange();
+                    suggestionsList.remove();
+                });
+                
+                suggestionsList.appendChild(suggestionItem);
+            });
+
+            inputElement.parentNode.style.position = 'relative';
+            inputElement.parentNode.appendChild(suggestionsList);
+
+            // Remove list when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!suggestionsList.contains(e.target) && e.target !== inputElement) {
+                    suggestionsList.remove();
+                }
+            }, { once: true });
+        }
+
+        // Get lab suggestions by domain
+        function getLabSuggestions(domainName) {
+            const suggestions = {
+                "Assessment Methodologies": [
+                    "Information Gathering with Google Dorking",
+                    "Passive Reconnaissance with Shodan",
+                    "WHOIS and DNS Enumeration",
+                    "Social Media OSINT",
+                    "Network Scanning with Nmap",
+                    "Host Discovery Techniques",
+                    "Port Scanning Fundamentals",
+                    "Service Version Detection",
+                    "Vulnerability Scanning with Nmap NSE",
+                    "Banner Grabbing Techniques",
+                    "Automated Vulnerability Assessment",
+                    "Target Profiling and Analysis",
+                    "Subdomain Enumeration",
+                    "Email Harvesting",
+                    "Metadata Analysis"
+                ],
+                "Host & Network Auditing": [
+                    "SMB Enumeration with SMBclient",
+                    "NetBIOS Information Gathering",
+                    "RPC Enumeration with rpcclient",
+                    "Enum4linux Complete Enumeration",
+                    "NFS Share Discovery",
+                    "SNMP Enumeration",
+                    "FTP Anonymous Access",
+                    "SSH Service Analysis",
+                    "Telnet Service Enumeration",
+                    "Database Service Discovery",
+                    "Web Service Fingerprinting",
+                    "Network Share Analysis",
+                    "LDAP Enumeration",
+                    "DNS Zone Transfer",
+                    "Active Directory Enumeration"
+                ],
+                "Host & Network Pen Testing": [
+                    "Metasploit Framework Basics",
+                    "Payload Generation with MSFvenom",
+                    "Windows Exploitation Techniques",
+                    "Linux Exploitation Methods", 
+                    "Buffer Overflow Exploitation",
+                    "Password Brute-force with Hydra",
+                    "Hash Cracking with John the Ripper",
+                    "Hashcat Advanced Cracking",
+                    "Privilege Escalation - Windows",
+                    "Privilege Escalation - Linux",
+                    "Post-Exploitation Techniques",
+                    "Lateral Movement Methods",
+                    "Persistence Mechanisms",
+                    "Network Pivoting",
+                    "Data Exfiltration Techniques",
+                    "Covering Tracks",
+                    "Remote Code Execution",
+                    "Service Exploitation",
+                    "Kernel Exploits",
+                    "Credential Dumping"
+                ],
+                "Web Application Pen Testing": [
+                    "Web Application Reconnaissance",
+                    "Directory Discovery with Gobuster",
+                    "Technology Stack Identification",
+                    "SQL Injection Exploitation",
+                    "Cross-Site Scripting (XSS)",
+                    "Cross-Site Request Forgery (CSRF)",
+                    "File Upload Vulnerabilities",
+                    "Local File Inclusion (LFI)",
+                    "Remote File Inclusion (RFI)",
+                    "Command Injection",
+                    "Server-Side Template Injection",
+                    "XML External Entity (XXE)",
+                    "Insecure Direct Object References",
+                    "Session Management Flaws",
+                    "Authentication Bypass"
+                ]
+            };
+
+            return suggestions[domainName] || [
+                "Custom Lab 1",
+                "Custom Lab 2", 
+                "Custom Lab 3"
+            ];
+        }
+
+        // Update progress
+        function updateProgress() {
+            const completedDays = Object.values(studyData.days).filter(day => day.completed).length;
+            const totalLabs = Object.values(studyData.days).reduce((total, day) => {
+                return total + (day.labs ? day.labs.filter(lab => lab.trim() !== '').length : 0);
+            }, 0);
+            const completionPercentage = Math.round((completedDays / 49) * 100);
+            const estimatedDays = 49 - completedDays;
+
+            document.getElementById('total-days').textContent = completedDays;
+            document.getElementById('total-labs').textContent = totalLabs;
+            document.getElementById('completion-percentage').textContent = completionPercentage + '%';
+            document.getElementById('estimated-days').textContent = estimatedDays;
+
+            // Update domain progress
+            studyPlan.domains.forEach((domain, index) => {
+                const domainCompletedDays = Object.keys(studyData.days).filter(dayNum => {
+                    const day = parseInt(dayNum);
+                    return day >= domain.startDay && 
+                           day < domain.startDay + domain.days && 
+                           studyData.days[dayNum].completed;
+                }).length;
+
+                const domainProgress = Math.round((domainCompletedDays / domain.days) * 100);
+                document.getElementById(`domain-${index + 1}-progress`).style.width = domainProgress + '%';
+                document.getElementById(`domain-${index + 1}-text`).textContent = 
+                    `${domainCompletedDays} of ${domain.days} days`;
+            });
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const completedDays = Object.values(studyData.days).filter(day => day.completed).length;
+            const totalLabs = Object.values(studyData.days).reduce((total, day) => {
+                return total + (day.labs ? day.labs.filter(lab => lab.trim() !== '').length : 0);
+            }, 0);
+            
+            // Calculate average labs per day
+            const avgLabsPerDay = completedDays > 0 ? (totalLabs / completedDays).toFixed(1) : 0;
+            
+            // Calculate study streak
+            let currentStreak = 0;
+            const sortedDays = Object.keys(studyData.days)
+                .map(Number)
+                .sort((a, b) => b - a);
+            
+            for (const day of sortedDays) {
+                if (studyData.days[day].completed) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Count notes written
+            const totalNotes = Object.values(studyData.days).filter(day => 
+                day.theory.trim() !== '' || day.notes.trim() !== ''
+            ).length;
+            
+            // Calculate weekly completion rate (last 7 days)
+            const last7Days = Object.keys(studyData.days)
+                .map(Number)
+                .filter(day => day > Math.max(...Object.keys(studyData.days).map(Number)) - 7);
+            const weeklyCompleted = last7Days.filter(day => studyData.days[day].completed).length;
+            const weeklyRate = last7Days.length > 0 ? Math.round((weeklyCompleted / last7Days.length) * 100) : 0;
+
+            document.getElementById('avg-labs-per-day').textContent = avgLabsPerDay;
+            document.getElementById('study-streak').textContent = currentStreak;
+            document.getElementById('total-notes').textContent = totalNotes;
+            document.getElementById('completion-rate').textContent = weeklyRate + '%';
+        }
+
+        // Filter days
+        function filterDays() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const domainFilter = document.getElementById('domain-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            const dayCards = document.querySelectorAll('.day-card');
+            
+            dayCards.forEach(card => {
+                const dayNumber = parseInt(card.id.replace('day-', ''));
+                const dayData = studyData.days[dayNumber];
+                const domain = card.getAttribute('data-domain');
+                
+                let showCard = true;
+                
+                // Search filter
+                if (searchTerm) {
+                    const cardText = card.textContent.toLowerCase();
+                    const labsText = dayData ? dayData.labs.join(' ').toLowerCase() : '';
+                    const notesText = dayData ? (dayData.theory + ' ' + dayData.notes).toLowerCase() : '';
+                    
+                    if (!cardText.includes(searchTerm) && 
+                        !labsText.includes(searchTerm) && 
+                        !notesText.includes(searchTerm)) {
+                        showCard = false;
+                    }
+                }
+                
+                // Domain filter
+                if (domainFilter && domain !== domainFilter) {
+                    showCard = false;
+                }
+                
+                // Status filter
+                if (statusFilter) {
+                    const isCompleted = dayData && dayData.completed;
+                    if ((statusFilter === 'completed' && !isCompleted) ||
+                        (statusFilter === 'pending' && isCompleted)) {
+                        showCard = false;
+                    }
+                }
+                
+                card.style.display = showCard ? 'block' : 'none';
+            });
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('domain-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            filterDays();
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            studyData.darkMode = document.body.classList.contains('dark-mode');
+            
+            const toggle = document.querySelector('.dark-mode-toggle');
+            toggle.textContent = studyData.darkMode ? '☀️' : '🌙';
+            
+            autoSave();
+            showNotification(`${studyData.darkMode ? 'Dark' : 'Light'} mode enabled`, 'success');
+        }
+
+        // Load dark mode
+        function loadDarkMode() {
+            if (studyData.darkMode) {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle').textContent = '☀️';
+            }
+        }
+
+        // Auto save
+        function autoSave() {
+            try {
+                localStorage.setItem('ejpt-study-data', JSON.stringify(studyData));
+            } catch (e) {
+                console.error('Auto-save failed:', e);
+            }
+        }
+
+        // Save progress
+        function saveProgress() {
+            try {
+                localStorage.setItem('ejpt-study-data', JSON.stringify(studyData));
+                showNotification('Progress saved successfully! 💾', 'success');
+            } catch (e) {
+                showNotification('Failed to save progress! ❌', 'error');
+            }
+        }
+
+        // Load progress
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('ejpt-study-data');
+                if (saved) {
+                    studyData = { ...studyData, ...JSON.parse(saved) };
+                    showNotification('Saved progress loaded! 📂', 'success');
+                }
+            } catch (e) {
+                console.error('Failed to load progress:', e);
+            }
+        }
+
+        // Export data
+        function exportData() {
+            try {
+                const dataStr = JSON.stringify(studyData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `ejpt-study-plan-${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showNotification('Data exported successfully! 📤', 'success');
+            } catch (e) {
+                showNotification('Failed to export data! ❌', 'error');
+            }
+        }
+
+        // Import data
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        studyData = { ...studyData, ...importedData };
+                        localStorage.setItem('ejpt-study-data', JSON.stringify(studyData));
+                        
+                        // Recreate page
+                        createStudyDays();
+                        updateProgress();
+                        updateStatistics();
+                        loadDarkMode();
+                        
+                        showNotification('Data imported successfully! 📥', 'success');
+                    } catch (err) {
+                        showNotification('Error reading file! ❌', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Show notifications
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveProgress();
+            }
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                toggleDarkMode();
+            }
+        });
+
+        // Auto-save every minute
+        setInterval(autoSave, 60000);
+
+        // Save indicator
+        let saveIndicator = null;
+        function showSaveIndicator() {
+            if (saveIndicator) clearTimeout(saveIndicator);
+            
+            const indicator = document.querySelector('.save-progress');
+            indicator.style.background = '#f39c12';
+            indicator.innerHTML = '⏳ Saving...';
+            
+            saveIndicator = setTimeout(() => {
+                indicator.style.background = '#27ae60';
+                indicator.innerHTML = '💾 Save Progress';
+            }, 1000);
+        }
+
+        // Enhance auto-save with indicator
+        const originalAutoSave = autoSave;
+        autoSave = function() {
+            showSaveIndicator();
+            originalAutoSave();
+        };
+
+        // Add PWA-like features
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // This would register a service worker for offline functionality
+                console.log('Ready for PWA features');
+            });
+        }
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '/' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                document.getElementById('search-input').focus();
+            }
+        });
+    </script>
+</body>
+</html>
